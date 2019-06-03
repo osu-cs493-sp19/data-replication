@@ -3,6 +3,7 @@ const MongoClient = require('mongodb').MongoClient;
 const bodyParser = require('body-parser');
 
 const { connectToDB } = require('./lib/mongo');
+const { getAllCats, insertNewCat } = require('./models/cat');
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -14,16 +15,18 @@ app.get('/cats', async (req, res) => {
     const cats = await getAllCats();
     res.status(200).send({ cats: cats });
   } catch (err) {
+    console.error(err);
     res.status(500).send({ error: "Error fetching cats" });
   }
 });
 
-app.post('/cats', function (req, res) {
+app.post('/cats', async (req, res) => {
   if (req.body && req.body.url) {
     try {
       const id = await insertNewCat(req.body);
       res.status(201).send({ _id: id });
     } catch (err) {
+      console.error(err);
       res.status(500).send({ error: "Failed to insert new cat." });
     }
   } else {
@@ -33,7 +36,7 @@ app.post('/cats', function (req, res) {
   }
 });
 
-app.use('*', function (req, res, next) {
+app.use('*', (req, res, next) => {
   res.status(404).send({
     err: "Path " + req.originalUrl + " does not exist"
   });
